@@ -110,7 +110,8 @@ def get_gmail_service():
             if creds.expired and creds.refresh_token:
                 creds.refresh(Request())
             return build("gmail", "v1", credentials=creds)
-        except Exception:
+        except Exception as e:
+            st.error(f"Gmail initialization failed: {e}")
             return None
     return None
 
@@ -482,6 +483,12 @@ if "thread_id" not in st.session_state:
 # ── Sidebar ────────────────────────────────────────
 with st.sidebar:
     st.header("⚡ Quick Actions")
+
+    if gmail_service:
+        st.success("🟢 Gmail Connected")
+    else:
+        st.error("🔴 Gmail Disconnected")
+        st.info("To connect, add your `token.json` content to Streamlit Secrets as `GMAIL_TOKEN_JSON`.")
 
     if st.button("📅 Daily Briefing", use_container_width=True):
         with st.spinner("Generating your briefing..."):
