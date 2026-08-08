@@ -488,7 +488,8 @@ with st.sidebar:
         st.success("🟢 Gmail Connected")
     else:
         st.error("🔴 Gmail Disconnected")
-        st.info("To connect, add your `token.json` content to Streamlit Secrets as `GMAIL_TOKEN_JSON`.")
+        available_keys = list(st.secrets.keys()) if st.secrets else []
+        st.info(f"To connect, add your `token.json` content to Streamlit Secrets as `GMAIL_TOKEN_JSON`. Available keys: {available_keys}")
 
     if st.button("📅 Daily Briefing", use_container_width=True):
         with st.spinner("Generating your briefing..."):
