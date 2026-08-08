@@ -26,7 +26,12 @@ load_dotenv()
 
 # ── Core setup ─────────────────────────────────────
 today_str = date.today().strftime("%B %d, %Y")
-llm = ChatGroq(model="openai/gpt-oss-120b", api_key=os.getenv("GROQ_API_KEY"), temperature=0.4)
+
+groq_api_key = os.getenv("GROQ_API_KEY")
+if not groq_api_key and "GROQ_API_KEY" in st.secrets:
+    groq_api_key = st.secrets["GROQ_API_KEY"]
+
+llm = ChatGroq(model="openai/gpt-oss-120b", api_key=groq_api_key, temperature=0.4)
 
 CREDENTIALS_PATH = "credentials.json"
 TOKEN_PATH = "token.json"
