@@ -1,5 +1,6 @@
 import streamlit as st
 import os
+import json
 import sqlite3
 import base64
 from email.mime.text import MIMEText
@@ -91,15 +92,27 @@ def get_all_memories(user_id: str = "user1"):
 
 # ── Gmail ──────────────────────────────────────────
 def get_gmail_service():
-    if not os.path.exists(TOKEN_PATH):
-        return None
-    try:
-        creds = Credentials.from_authorized_user_file(TOKEN_PATH, SCOPES)
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        return build("gmail", "v1", credentials=creds)
-    except Exception:
-        return None
+    creds = None
+    if "GMAIL_TOKEN_JSON" in st.secrets:
+        try:
+            token_info = json.loads(st.secrets["GMAIL_TOKEN_JSON"])
+            creds = Credentials.from_authorized_user_info(token_info, SCOPES)
+        except Exception as e:
+            st.error(f"Failed to load GMAIL_TOKEN_JSON from secrets: {e}")
+    elif os.path.exists(TOKEN_PATH):
+        try:
+            creds = Credentials.from_authorized_user_file(TOKEN_PATH, SCOPES)
+        except Exception:
+            pass
+
+    if creds:
+        try:
+            if creds.expired and creds.refresh_token:
+                creds.refresh(Request())
+            return build("gmail", "v1", credentials=creds)
+        except Exception:
+            return None
+    return None
 
 gmail_service = get_gmail_service()
 
