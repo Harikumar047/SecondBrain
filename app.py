@@ -91,12 +91,15 @@ def get_all_memories(user_id: str = "user1"):
 
 # ── Gmail ──────────────────────────────────────────
 def get_gmail_service():
-    creds = None
-    if os.path.exists(TOKEN_PATH):
+    if not os.path.exists(TOKEN_PATH):
+        return None
+    try:
         creds = Credentials.from_authorized_user_file(TOKEN_PATH, SCOPES)
-    if creds and creds.expired and creds.refresh_token:
-        creds.refresh(Request())
-    return build("gmail", "v1", credentials=creds)
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        return build("gmail", "v1", credentials=creds)
+    except Exception:
+        return None
 
 gmail_service = get_gmail_service()
 
@@ -231,6 +234,8 @@ def complete_task(task_id: int) -> str:
 @tool
 def read_inbox(max_results: int = 5) -> str:
     """Read latest emails from Gmail inbox."""
+    if not gmail_service:
+        return "Gmail integration is not configured or authenticated. Please verify credentials."
     results = gmail_service.users().messages().list(
         userId="me", maxResults=max_results, labelIds=["INBOX"]
     ).execute()
@@ -250,6 +255,8 @@ def read_inbox(max_results: int = 5) -> str:
 @tool
 def send_email(to: str, subject: str, body: str) -> str:
     """Send an email via Gmail."""
+    if not gmail_service:
+        return "Gmail integration is not configured or authenticated. Please verify credentials."
     message = MIMEText(body)
     message["to"] = to
     message["subject"] = subject
